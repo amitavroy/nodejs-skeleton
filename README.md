@@ -54,14 +54,18 @@ Everything below is available once `make up` and `npm run dev` are running. Port
 | Redis | `localhost:6380` | For Redis tools; used by the job queue | none | `REDIS_PORT` |
 | SMTP | `localhost:1025` | Where the app sends mail; Mailpit catches it | none | `SMTP_PORT` |
 
-**Application logs** are not in Dozzle (the apps don't run in Docker). They appear in the terminal where `npm run dev` runs, as JSON lines. Every line has a `requestId`: send an `X-Request-ID` header (or read it from the response) and search the log for it to follow one request, including the background job it started.
+**Application logs** are not in Dozzle (the apps don't run in Docker). Where they go depends on `LOGS_AS_FILE` in `.env`:
+- `false` (default): the terminal where `npm run dev` runs, as JSON lines.
+- `true`: files in `storage/logs/`, one per day (`2026-11-22.log`), appended to across restarts. Nothing is printed to the terminal except one line saying where the logs go. Follow along with `tail -f storage/logs/$(date +%Y-%m-%d).log`. Old files are not deleted automatically.
+
+Every log line has a `requestId`: send an `X-Request-ID` header (or read it from the response) and search the log for it to follow one request, including the background job it started.
 
 ## Try it
 1. Open http://localhost:3000 and add an item.
 2. **Swagger UI** shows the `POST /api/items` endpoint that was called.
 3. **pgAdmin** shows the new row in the `items` table.
 4. **Bull Board** shows an `item-added` job in `app-jobs`, completed.
-5. The terminal running `npm run dev` shows `item created`, `request completed` and `item added`, all with the same `requestId`.
+5. The terminal running `npm run dev` (or today's file in `storage/logs/` when `LOGS_AS_FILE=true`) shows `item created`, `request completed` and `item added`, all with the same `requestId`.
 
 ## Commands
 | Command | What it does |
@@ -82,6 +86,7 @@ Everything below is available once `make up` and `npm run dev` are running. Port
 apps/server/     Hono API: modules/<feature>/{routes,service,repository}, jobs/, ports/, adapters/, common/, db/, config.ts
 apps/web/        Next.js UI (own API types in src/types.ts; the browser calls /api, proxied to the API)
 docker/          Config for the Docker services (Postgres init, pgAdmin server list)
+storage/logs/    Date-wise log files when LOGS_AS_FILE=true (git-ignored)
 docs/            architecture.md (decisions and rules), plans/ (one plan per unit of work)
 CLAUDE.md        Working rules for AI coding sessions
 ```

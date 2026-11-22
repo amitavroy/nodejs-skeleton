@@ -11,7 +11,7 @@ TypeScript monorepo (npm workspaces): `apps/server` (Hono + Drizzle + Postgres),
   - The apps share no code. The web app keeps its own hand-written API types in `apps/web/src/types.ts`; when an API response changes, update them in the same change.
   - No `process.env` outside `apps/server/src/config.ts`.
   - Every endpoint is documented in OpenAPI in the same change, derived from its Zod schemas via `createRoute` (see "API documentation" in `docs/architecture.md`). Swagger UI is at `/docs` on the API port. An endpoint without `tags`, `summary`, and every response status it can return is not finished.
-  - Logging: pino JSON; every line carries `requestId` automatically. Add domain IDs only (`{ itemId }`), never log secrets. Never use `console.log`.
+  - Logging: pino JSON; every line carries `requestId` automatically. Add domain IDs only (`{ itemId }`), never log secrets. Never use `console.log`. Output goes to stdout, or to `storage/logs/YYYY-MM-DD.log` when `LOGS_AS_FILE=true`; code never opens log files itself.
   - Services throw `DomainError` subclasses; the global error handler shapes the response. Error body is always `{ code, message, details?, requestId }`. Validation errors are 422.
   - Slow or heavy work (rendering, transcoding, imports) never runs inside a request handler: queue it as a job (BullMQ on Redis) through `JobQueuePort`, never by importing `bullmq` in a service. Handlers in `jobs/handlers.ts` stay thin (one service call). The requestId travels with the job automatically; see "Long-running work" in `docs/architecture.md` for how to add a job.
   - Outgoing email goes through Mailpit in dev (SMTP_HOST/SMTP_PORT); never hard-code a mail host.

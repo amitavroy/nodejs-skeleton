@@ -61,7 +61,7 @@ apps/server/src/
 ```
 
 ### Observability
-- Pino JSON logs (`common/logger.ts`); level from `LOG_LEVEL`. Every log line carries `requestId`, plus domain IDs where known (`itemId`, `jobId`, ...).
+- Pino JSON logs (`common/logger.ts`); level from `LOG_LEVEL`. Output goes to stdout, or, when `LOGS_AS_FILE=true`, to one file per day, `storage/logs/YYYY-MM-DD.log` at the repo root (`common/log-file.ts`; local-time date, appended across restarts, never deleted automatically, so rotate or prune them outside the app). The two modes are exclusive: a file means nothing on stdout. In containers or on a platform that collects stdout, keep `false`. Every log line carries `requestId`, plus domain IDs where known (`itemId`, `jobId`, ...).
 - `requestId` is the `X-Request-ID` request header (if present and at most 128 chars) or a generated UUID. It is returned in the `X-Request-ID` response header, included in every error body, and kept in `AsyncLocalStorage` (`common/request-context.ts`), so services log it without passing it around. The web app's `/api` proxy forwards the header untouched.
 - Each request ends with one `request completed` line (method, path, status, `responseTimeMs`). Unhandled exceptions are logged at `error` with the cause; the client only sees a generic 500.
 - When a request enqueues a job, copy `getRequestId()` into the job data; the worker restores it with `runWithRequestId` before calling the service. Job failure logs say whether the job `will_retry` or is a `final_failure`, with the attempt number. This is built in `jobs/worker.ts`; `test/jobs.test.ts` proves a request's ID shows up in the worker's logs.

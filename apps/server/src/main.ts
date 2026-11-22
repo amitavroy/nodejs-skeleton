@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { Redis } from "ioredis";
 import { BullMqJobQueue } from "./adapters/bullmq-job-queue.adapter.js";
 import { createApp } from "./app.js";
-import { createLogger } from "./common/logger.js";
+import { createAppLogger } from "./common/logger.js";
 import { loadConfig } from "./config.js";
 import { createDb } from "./db/client.js";
 import { createJobHandlers } from "./jobs/handlers.js";
@@ -12,7 +12,12 @@ import { startWorker } from "./jobs/worker.js";
 import { createServices } from "./services.js";
 
 const config = loadConfig();
-const logger = createLogger(config.LOG_LEVEL);
+const { logger, close: closeLogs, logsDir } = createAppLogger({
+  level: config.LOG_LEVEL,
+  logsAsFile: config.LOGS_AS_FILE,
+});
+// With file logging the terminal would otherwise stay silent; say where the logs go.
+if (logsDir) process.stdout.write(`Logging to ${logsDir}/ (one file per day)\n`);
 const { db, pool } = await createDb(config);
 const redisConnection = { host: config.REDIS_HOST, port: config.REDIS_PORT };
 const redis = new Redis({ ...redisConnection, lazyConnect: true });
@@ -52,6 +57,7 @@ async function shutdown(signal: string) {
   await queue.close();
   redis.disconnect();
   await pool.end();
+  await closeLogs();
   process.exit(0);
 }
 for (const signal of ["SIGINT", "SIGTERM"] as const) process.on(signal, () => void shutdown(signal));

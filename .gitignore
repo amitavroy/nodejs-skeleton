@@ -13,3 +13,6 @@ media/*
 *.tsbuildinfo
 .next
 next-env.d.ts
+
+storage/logs/*
+!storage/logs/.gitkeep

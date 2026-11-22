@@ -18,7 +18,7 @@ import { parseArgs } from "node:util";
 // Built from two pieces so this file does not get rewritten by its own replacement pass.
 const PLACEHOLDER = "__APP" + "_NAME__";
 const root = resolve(import.meta.dirname, "..");
-const SKIP_DIRS = new Set(["node_modules", ".git", ".next", "dist", "data"]);
+const SKIP_DIRS = new Set(["node_modules", ".git", ".next", "dist", "data", "storage"]);
 const SKIP_FILES = new Set(["init.mjs"]);
 
 const USAGE = `Usage:

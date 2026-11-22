@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 const envSchema = z.object({
+  // true: write date-wise files to storage/logs/ (nothing on stdout). false: write to stdout.
+  LOGS_AS_FILE: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   API_PORT: z.coerce.number().int().default(3001),
   DB_HOST: z.string().default("localhost"),
