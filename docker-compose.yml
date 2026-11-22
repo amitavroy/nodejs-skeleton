@@ -54,6 +54,9 @@ services:
     volumes:
       - pgadmindata:/var/lib/pgadmin
       - ./docker/pgadmin/servers.json:/pgadmin4/servers.json:ro
+      # Drop SQL dumps in ./data on your machine; in pgAdmin's file picker (Import/Restore) browse to /data.
+      # Read-only: pgAdmin can read dumps here but not write to your folder.
+      - ./data:/data:ro
     depends_on:
       postgres:
         condition: service_healthy

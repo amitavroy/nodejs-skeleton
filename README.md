@@ -60,6 +60,14 @@ Everything below is available once `make up` and `npm run dev` are running. Port
 
 Every log line has a `requestId`: send an `X-Request-ID` header (or read it from the response) and search the log for it to follow one request, including the background job it started.
 
+## Import a SQL dump with pgAdmin
+The `data/` folder on your machine is available inside pgAdmin as **`/data`** (read-only).
+1. Copy your dump into `data/` (for example `data/backup.sql`). Files in `data/` are git-ignored, and `.sql` files are ignored explicitly, so a dump can never be committed by accident.
+2. In pgAdmin (http://localhost:5050), right-click your database, then **Query Tool**, and use the folder icon to open `/data/backup.sql` and run it. For a custom-format dump (`.dump`, `.backup`), right-click the database, choose **Restore...**, and pick the file under `/data`.
+3. Make sure the right database is selected first: the preregistered server connects to the database you chose during `npm run init`.
+
+pgAdmin can only read `data/`. To export a backup from pgAdmin, save it inside pgAdmin's own storage, or change the mount in `docker-compose.yml` from `./data:/data:ro` to `./data:/data`.
+
 ## Try it
 1. Open http://localhost:3000 and add an item.
 2. **Swagger UI** shows the `POST /api/items` endpoint that was called.
@@ -87,6 +95,7 @@ apps/server/     Hono API: modules/<feature>/{routes,service,repository}, jobs/,
 apps/web/        Next.js UI (own API types in src/types.ts; the browser calls /api, proxied to the API)
 docker/          Config for the Docker services (Postgres init, pgAdmin server list)
 storage/logs/    Date-wise log files when LOGS_AS_FILE=true (git-ignored)
+data/            Drop SQL dumps here; pgAdmin sees it as /data (contents git-ignored)
 docs/            architecture.md (decisions and rules), plans/ (one plan per unit of work)
 CLAUDE.md        Working rules for AI coding sessions
 ```
