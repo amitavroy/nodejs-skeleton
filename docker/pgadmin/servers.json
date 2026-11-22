@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "__APP_NAME__ (local Postgres)",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "app",
+      "Username": "app",
+      "SSLMode": "prefer",
+      "Comment": "Password is DB_PASSWORD from .env (default: secret)"
+    }
+  }
+}
