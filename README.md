@@ -72,6 +72,9 @@ Everything below is available once `make up` and `npm run dev` are running. Port
 | `npm run typecheck` | Type-check all workspaces |
 | `npm run build` | Production build of the web app (`npm run start -w @app/web` serves it) |
 | `npm run start` | Start the API only |
+| `make outdated` | List packages (API and web app) that have newer versions: *Wanted* is a safe update, *Latest* may be a breaking major |
+| `make update` | Safe update: newest versions your `package.json` ranges allow, then typecheck, tests and web build |
+| `make upgrade` | Upgrade everything to the latest version, including majors that may break, then typecheck, tests and build. Review with `git diff`; undo with `git checkout package.json apps/*/package.json package-lock.json && npm install` |
 | `npm run db:generate` | Create a migration after editing `apps/server/src/db/schema.ts` |
 
 ## Layout
