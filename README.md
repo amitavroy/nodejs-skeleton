@@ -4,21 +4,28 @@ A starter for TypeScript web apps: a **Next.js** web app, a **Hono** REST API wi
 
 The example feature is a list of **items**: add one in the web app and you can follow it through the API, the database, the job queue and the logs using the URLs below.
 
-## Quick start
+## Start a new app from this template
 ```bash
-make up            # start Postgres, Redis, Mailpit, pgAdmin, Dozzle in Docker
+cp -R node-template my-new-app && cd my-new-app
+rm -rf node_modules .git
+npm run init       # asks for the app name and database details (needs only Node)
 npm install
-cp .env.example .env
+make up            # start Postgres, Redis, Mailpit, pgAdmin, Dozzle in Docker
 npm run dev        # API on :3001, web app on :3000
 ```
 Then open http://localhost:3000.
 
-To start a **new project from this template**, copy the folder and run the init script first:
+`npm run init` asks for:
+1. **App name** (lowercase, digits, dashes; e.g. `video-magic`). Replaces the `__APP_NAME__` placeholder everywhere: package names, page title, docs, Docker project name.
+2. **Database name**, **database user** and **database password**. It writes `.env` from `.env.example` with these values, and points the pgAdmin server list at the same database. The name and user default to the app name with underscores; press Enter on the password to get a random one (it is saved as `DB_PASSWORD` in `.env`).
+
+It also runs `git init` if the folder has no repository. It refuses to run twice, and asks before overwriting an existing `.env`. For scripts and CI, pass everything as flags and nothing is asked:
 ```bash
-cp -R node-template my-new-project && cd my-new-project
-rm -rf node_modules .git
-npm run init -- my-new-project     # renames placeholders, creates .env, runs git init
+npm run init -- --name my-app --db-name my_app --db-user my_app --db-password 'pick-a-password' --yes
 ```
+(`--yes` takes the defaults for anything you leave out. Passwords need at least 6 characters and must not contain spaces or the characters # $ quotes, backticks or backslashes, which break `.env` files.)
+
+Changing a database name, user or password later: edit `.env`, update `docker/pgadmin/servers.json`, and recreate the database volume, because Postgres only reads these on first start.
 
 ## Where to see things
 Everything below is available once `make up` and `npm run dev` are running. Ports are the defaults; change them in `.env`.
@@ -40,10 +47,10 @@ Everything below is available once `make up` and `npm run dev` are running. Port
 ### Supporting services (Docker)
 | What | URL / address | What you'll see | Login | Port setting |
 |---|---|---|---|---|
-| **pgAdmin** | http://localhost:5050 | Browse the database tables and run SQL | none; connect to the preregistered server with the password `secret` (`DB_PASSWORD`) | `PGADMIN_PORT` |
+| **pgAdmin** | http://localhost:5050 | Browse the database tables and run SQL | none; connect to the preregistered server with your database password (`DB_PASSWORD` in `.env`) | `PGADMIN_PORT` |
 | **Mailpit** | http://localhost:8025 | Inbox of every email the app sends in development (nothing is ever delivered). The template doesn't send mail yet. | none | `MAILPIT_PORT` |
 | **Dozzle** | http://localhost:9000 | Live logs of the Docker containers (Postgres, Redis, ...) | none | `DOZZLE_PORT` |
-| Postgres | `localhost:5433` | For database tools (user `app`, password `secret`, database `app`) | see `.env` | `DB_PORT` |
+| Postgres | `localhost:5433` | For database tools (the database name, user and password you chose) | `DB_NAME`, `DB_USER`, `DB_PASSWORD` in `.env` | `DB_PORT` |
 | Redis | `localhost:6380` | For Redis tools; used by the job queue | none | `REDIS_PORT` |
 | SMTP | `localhost:1025` | Where the app sends mail; Mailpit catches it | none | `SMTP_PORT` |
 
