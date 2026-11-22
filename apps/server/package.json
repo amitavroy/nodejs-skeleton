@@ -11,12 +11,17 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@bull-board/api": "^9.14.0",
+    "@bull-board/hono": "^9.14.0",
     "@hono/node-server": "^1.13.0",
-    "@hono/zod-validator": "^0.7.0",
+    "@hono/swagger-ui": "^0.6.2",
+    "@hono/zod-openapi": "^1.6.3",
+    "bullmq": "^5.81.6",
     "drizzle-orm": "^0.44.0",
-    "hono": "^4.9.0",
+    "hono": "^4.10.0",
     "ioredis": "^5.6.0",
     "pg": "^8.16.0",
+    "pino": "^10.4.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {

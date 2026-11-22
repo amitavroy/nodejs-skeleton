@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createApp } from "../src/app.js";
-import { createTestDb } from "./test-db.js";
+import { testApp } from "./test-app.js";
+import type { FakeJobQueue } from "./fake-job-queue.js";
 
-let app: ReturnType<typeof createApp>;
+let app: Awaited<ReturnType<typeof testApp>>["app"];
+let jobs: FakeJobQueue;
 
 beforeEach(async () => {
-  app = createApp({ db: await createTestDb() });
+  ({ app, jobs } = await testApp());
 });
 
 const post = (body: unknown) =>
@@ -24,6 +25,11 @@ describe("items API", () => {
     expect(body.total).toBe(2);
     expect(body.data).toHaveLength(1);
     expect(body.data[0].name).toBe("second");
+  });
+
+  it("enqueues an item-added job when an item is created", async () => {
+    await post({ name: "queued" });
+    expect(jobs.jobs).toEqual([{ name: "item-added", payload: { itemId: 1 } }]);
   });
 
   it("answers 422 with field details on invalid input", async () => {
@@ -50,8 +56,7 @@ describe("items API", () => {
 
 describe("health", () => {
   it("reports degraded with 503 when a dependency is down", async () => {
-    const down = createApp({
-      db: await createTestDb(),
+    const { app: down } = await testApp({
       healthChecks: { ok: async () => 1, broken: async () => Promise.reject(new Error("x")) },
     });
     const res = await down.request("/api/health");
