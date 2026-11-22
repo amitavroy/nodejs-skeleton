@@ -11,7 +11,7 @@
 The template's example code is gone and the first real feature works.
 
 ## Context
-Fresh from the template. `items` is a worked example of every layer; copy its pattern, then delete it (module, shared schema, UI, test, and generate a new migration).
+Fresh from the template. `items` is a worked example of every layer; copy its pattern, then delete it (server module and schemas, web types and UI, test, and generate a new migration).
 
 ## Scope
 - In: first feature, doc updates.

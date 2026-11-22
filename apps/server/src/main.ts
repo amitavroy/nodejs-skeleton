@@ -20,6 +20,6 @@ const app = createApp({
   },
 });
 
-serve({ fetch: app.fetch, port: config.PORT }, (info) => {
+serve({ fetch: app.fetch, port: config.API_PORT }, (info) => {
   console.log(`server listening on http://localhost:${info.port}`);
 });

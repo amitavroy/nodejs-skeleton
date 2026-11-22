@@ -11,3 +11,5 @@ media/*
 !media/.gitkeep
 .DS_Store
 *.tsbuildinfo
+.next
+next-env.d.ts

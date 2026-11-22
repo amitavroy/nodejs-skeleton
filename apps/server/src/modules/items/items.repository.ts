@@ -1,5 +1,5 @@
 import { count, desc, eq } from "drizzle-orm";
-import type { Item } from "@app/shared";
+import type { Item } from "./items.schemas.js";
 import type { Db } from "../../db/client.js";
 import { items } from "../../db/schema.js";
 

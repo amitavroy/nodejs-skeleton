@@ -1,11 +1,15 @@
-import type { ApiError, CreateItem, Item, PaginatedResponse } from "@app/shared";
+import type { ApiError, CreateItem, Item, PaginatedResponse } from "./types";
 
 export class ApiRequestError extends Error {
-  constructor(readonly status: number, readonly body: ApiError) {
+  constructor(
+    readonly status: number,
+    readonly body: ApiError,
+  ) {
     super(body.message);
   }
 }
 
+// Same-origin /api/*; next.config.ts forwards it to the Hono server.
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,

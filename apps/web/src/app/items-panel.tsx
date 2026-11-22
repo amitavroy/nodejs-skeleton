@@ -1,9 +1,11 @@
+"use client";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { api, ApiRequestError } from "./api";
+import { api, ApiRequestError } from "../api";
 
 /** Example screen: loading / error / empty states, a form, and a mutation. */
-export function App() {
+export function ItemsPanel() {
   const qc = useQueryClient();
   const [name, setName] = useState("");
   const items = useQuery({ queryKey: ["items"], queryFn: api.listItems });
@@ -29,9 +31,7 @@ export function App() {
       : undefined;
 
   return (
-    <main className="mx-auto max-w-xl p-8">
-      <h1 className="text-2xl font-semibold">__APP_NAME__</h1>
-
+    <>
       <form onSubmit={onSubmit} className="mt-6 flex gap-2">
         <input
           value={name}
@@ -66,6 +66,6 @@ export function App() {
           ))}
         </ul>
       </section>
-    </main>
+    </>
   );
 }

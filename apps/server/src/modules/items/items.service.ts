@@ -1,5 +1,6 @@
-import type { CreateItem, Item, PaginatedResponse, PaginationQuery } from "@app/shared";
 import { NotFoundError } from "../../common/errors.js";
+import type { PaginatedResponse, PaginationQuery } from "../../common/pagination.js";
+import type { CreateItem, Item } from "./items.schemas.js";
 import type { ItemsRepository } from "./items.repository.js";
 
 /** Business logic lives here. No Drizzle, no Hono, no process.env. */

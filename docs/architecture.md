@@ -2,8 +2,8 @@
 
 ## Overview
 - `apps/server`: Hono API on Node, Postgres via Drizzle (node-postgres). Started with `tsx`, no build step.
-- `apps/web`: React + Vite + Tailwind v4 + TanStack Query. In dev, Vite proxies `/api` to the server.
-- `packages/shared`: Zod schemas and inferred types, imported by both apps as TypeScript source.
+- `apps/web`: Next.js (App Router) + Tailwind v4 + TanStack Query. It only renders UI: `next.config.ts` rewrites `/api/*` to the Hono server, so the browser stays same-origin and there is no CORS. `scripts/next.mjs` loads the root `.env` and sets the port from `WEB_PORT`.
+- The two apps are independent: they share no code or packages and talk only over HTTP. The web app mirrors the API's types by hand in `src/types.ts`.
 - The app runs on the host. `docker-compose.yml` runs the infrastructure: Postgres (`pgvector/pgvector:pg17`, with the `vector` extension enabled), Redis (`redis:7-alpine`, for queues), Mailpit (dev mail catcher), pgAdmin (preconfigured via `docker/pgadmin/servers.json`) and Dozzle (container logs). Manage them with `make`.
 
 ## Architectural decisions
@@ -11,8 +11,8 @@ Add one ADR per decision that is costly to reverse. Status: proposed | accepted 
 
 ### ADR-001: Single TypeScript monorepo with npm workspaces
 - **Status:** accepted
-- **Decision:** one language and one repo for API, UI and shared types. npm workspaces, no extra tooling.
-- **Consequences:** API types are shared with the UI without codegen. Fewer moving parts; a switch to pnpm or Turborepo is possible later without code changes.
+- **Decision:** one repo and one language for API and UI, installed together with npm workspaces (one lockfile, one `npm install`). No code is shared between the apps.
+- **Consequences:** the web app's API types are written by hand and must be updated when the API changes (add OpenAPI-generated types later if this becomes painful). Each app can be moved to its own repo without code changes.
 
 ### ADR-002: Postgres with Drizzle, migrations on start
 - **Status:** accepted
@@ -29,6 +29,11 @@ Add one ADR per decision that is costly to reverse. Status: proposed | accepted 
   - 401, 403, 409 and 429 are added when auth, conflicts or rate limits arrive.
 - **Enforcement:** `DomainError` carries its `httpStatus` (default 422); the global handler in `app.ts` writes it.
 
+### ADR-004: Next.js is UI only; Hono is the single API
+- **Status:** accepted
+- **Decision:** the web app is Next.js, but all API logic stays in `apps/server`. Next proxies `/api/*` to it.
+- **Consequences:** one place for business rules, validation and tests. Heavy or long-running work (rendering, transcoding) never lives in Next, which keeps the server free to run queues and workers. If server rendering with API data is needed later, call Hono from server components rather than duplicating logic.
+
 ## Server guidelines
 ### Layering
 | Layer | Does | Must not |
@@ -44,7 +49,7 @@ Add one ADR per decision that is costly to reverse. Status: proposed | accepted 
 apps/server/src/
   modules/<feature>/   <feature>.routes.ts, .service.ts, .repository.ts
   adapters/            implementations of external-system interfaces
-  common/              errors, validation helper, shared types
+  common/              errors, validation helper, pagination
   db/                  schema.ts, client.ts
   config.ts            the only reader of process.env
   app.ts               composition root (wiring)
@@ -60,4 +65,6 @@ Test through the app with `app.request(...)` against an in-memory database (`cre
 ## Web guidelines
 - Data loaded with TanStack Query; every list has loading, error and empty states.
 - Forms show server 422 `details` next to the matching field.
-- API calls go through `src/api.ts` only; types come from `@app/shared`.
+- API calls go through `src/api.ts` only; types come from `src/types.ts`.
+- No Next API routes or server actions: business logic and data access live in `apps/server` (ADR-004).
+- Components that fetch data are client components (`"use client"`).

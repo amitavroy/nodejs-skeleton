@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import { z } from "zod";
-import { createItemSchema, paginationQuerySchema } from "@app/shared";
 import type { AppEnv } from "../../common/app-env.js";
+import { paginationQuerySchema } from "../../common/pagination.js";
 import { validate } from "../../common/validate.js";
+import { createItemSchema } from "./items.schemas.js";
 import type { ItemsService } from "./items.service.js";
 
 const idParam = z.object({ id: z.coerce.number().int().positive() });
