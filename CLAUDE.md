@@ -5,6 +5,8 @@ TypeScript monorepo (npm workspaces): `apps/server` (NestJS + Drizzle + Postgres
 ## Working agreement
 - Work is driven by plans in `docs/plans/` (see its README). Execute one plan per session; don't wander beyond its Scope.
 - When a plan is finished, tick its tasks, fill in its Outcome and update the index.
+- Branches: **work on a plan always happens on its own branch**, never on `main`. Before implementing any task of a plan, run `/start-plan NNNN` (or follow `.claude/commands/start-plan.md` by hand): it creates `<issue>-<slug>` from the plan's GitHub issue (`plan-NNNN-<slug>` if it has none), pushes it, commits the plan there, and only then starts work. Commits on a plan branch are authorised by the plan; reference the issue (`#123`) in their messages.
+  - Small changes outside any plan (a typo, a config tweak, a one-line fix) may be made on `main`. If it is unclear whether something is plan work or a small change for `main`, ask before touching any file.
 - `docs/architecture.md` is **binding for all new code**. Check its ADRs before changing the data model or layering. Rules you must not break:
   - Layering (server): controller → service → repository. Controllers never touch the DB; services never import Drizzle or Express; Drizzle is used only inside repositories, which return domain types.
   - Server: Zod schemas live next to the module (`<feature>.schemas.ts`) and are the source of truth for DTOs; infer types from them and wrap them with `createZodDto` (nestjs-zod). Controllers take `@Body()`, `@Query()` and `@Param()` as those DTOs (path params too, never `ParseIntPipe`); the global `ZodValidationPipe` validates them and failures answer 422 through `AllExceptionsFilter`.
@@ -19,6 +21,8 @@ TypeScript monorepo (npm workspaces): `apps/server` (NestJS + Drizzle + Postgres
   - List endpoints return `PaginatedResponse<T>`.
   - No `any`; one class per file; kebab-case file names with a role suffix (`items.service.ts`, `.controller.ts`, `.repository.ts`, `.module.ts`, `.interface.ts`).
   - Web: data via TanStack Query with loading, error and empty states; show 422 `details` on the matching form field.
+  - Web UI is built with **shadcn/ui** (mandatory). Add primitives with the shadcn CLI (`npx shadcn@latest add <component>`, run in `apps/web`) into `src/components/ui/`; never hand-roll a button, input, table, dialog, form, etc. that shadcn provides, and don't add another component library. Compose shadcn primitives for anything bigger.
+  - Web: components used by one page live next to it in a private `_components/` folder (`src/app/<route>/_components/items-table.tsx`, `items-form.tsx`). The `_` prefix keeps the folder out of routing, so it never becomes a URL segment. `page.tsx` stays thin and composes them. Only components shared by several routes go in `src/components/`; shadcn primitives stay in `src/components/ui/`.
 - Server is CommonJS, built and tested with SWC (Nest DI needs decorator metadata, which esbuild/tsx don't emit). Relative imports have no file suffix. Use `__dirname`, not `import.meta`.
   - Web: the API is `apps/server` only. Do not add Next API routes (`route.ts`) or server actions; the browser calls same-origin `/api/*`, which `next.config.ts` forwards to the API. Pages are client-rendered with TanStack Query; use server components only for static layout.
 - Schema-first: the Zod schema is the single source of truth for validation, types and docs. Import `z` from `zod` and DTO helpers from `nestjs-zod`.

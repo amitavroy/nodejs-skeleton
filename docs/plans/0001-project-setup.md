@@ -2,6 +2,8 @@
 
 - **Status:** proposed
 - **Depends on:** none
+- **GitHub issue:** none
+- **Branch:** (set by /start-plan)
 
 ## Tasks
 - [ ] 1. Replace the example `items` module with the first real feature, end to end (schema → repository → service → route → UI → test)

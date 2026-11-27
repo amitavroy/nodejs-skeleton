@@ -2,6 +2,8 @@
 
 - **Status:** proposed | approved | in-progress | done
 - **Depends on:** (plan numbers, or none)
+- **GitHub issue:** #123 | none
+- **Branch:** (set by /start-plan)
 
 ## Tasks
 Vertical slices: each task delivers something working end to end, not a horizontal layer. Tick `[x]` as each one is finished and verified.
