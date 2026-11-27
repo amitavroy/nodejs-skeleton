@@ -1,4 +1,4 @@
-import { z } from "@hono/zod-openapi";
+import { z } from "zod";
 
 /** Response schema for list endpoints: paginatedSchema(itemSchema, "ItemPage"). */
 export function paginatedSchema<T extends z.ZodType>(item: T, name: string) {
@@ -9,5 +9,5 @@ export function paginatedSchema<T extends z.ZodType>(item: T, name: string) {
       pageSize: z.number().int(),
       total: z.number().int(),
     })
-    .openapi(name);
+    .meta({ id: name });
 }

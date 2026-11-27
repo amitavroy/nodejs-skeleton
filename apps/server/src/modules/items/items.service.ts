@@ -1,16 +1,22 @@
-import { NotFoundError } from "../../common/errors.js";
-import type { Logger } from "../../common/logger.js";
-import type { JobQueuePort } from "../../ports/job-queue.port.js";
-import type { PaginatedResponse, PaginationQuery } from "../../common/pagination.js";
-import type { CreateItem, Item } from "./items.schemas.js";
-import type { ItemsRepository } from "./items.repository.js";
+import { Inject, Injectable } from "@nestjs/common";
+import { NotFoundError } from "../../common/errors";
+import { LOGGER, type Logger } from "../../common/logger";
+import type { PaginatedResponse, PaginationQuery } from "../../common/pagination";
+import { APP_CONFIG, type AppConfig } from "../../config";
+import { JOB_QUEUE, type JobQueue } from "../../integrations/job-queue/job-queue.interface";
+import { MAIL_SENDER, type MailSender } from "../../integrations/mail/mail-sender.interface";
+import { ItemsRepository } from "./items.repository";
+import type { CreateItem, Item } from "./items.schemas";
 
-/** Business logic lives here. No Drizzle, no Hono, no process.env. */
+/** Business logic lives here. No Drizzle, no Express, no process.env. */
+@Injectable()
 export class ItemsService {
   constructor(
     private readonly repo: ItemsRepository,
-    private readonly log: Logger,
-    private readonly jobs: JobQueuePort,
+    @Inject(LOGGER) private readonly log: Logger,
+    @Inject(JOB_QUEUE) private readonly jobs: JobQueue,
+    @Inject(MAIL_SENDER) private readonly mailer: MailSender,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
   ) {}
 
   async list({ page, pageSize }: PaginationQuery): Promise<PaginatedResponse<Item>> {
@@ -40,6 +46,11 @@ export class ItemsService {
       this.log.warn({ itemId }, "item added job: item no longer exists");
       return;
     }
+    await this.mailer.send({
+      to: this.config.MAIL_FROM,
+      subject: `Item added: ${item.name}`,
+      text: `Item #${item.id} "${item.name}" was added at ${item.createdAt}.`,
+    });
     this.log.info({ itemId, name: item.name }, "item added");
   }
 

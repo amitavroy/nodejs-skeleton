@@ -1,5 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "types": ["node"] },
+  "compilerOptions": {
+    "types": ["node"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "verbatimModuleSyntax": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
   "include": ["src", "test", "drizzle.config.ts"]
 }

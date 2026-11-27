@@ -1,12 +1,15 @@
 import { resolve } from "node:path";
 import { pino, type DestinationStream, type Logger } from "pino";
-import { createDailyFileStream } from "./log-file.js";
-import { getRequestId } from "./request-context.js";
+import { createDailyFileStream } from "./log-file";
+import { getRequestId } from "./request-context";
 
 export type { Logger };
 
+/** Injection token for the pino Logger (provided by CoreModule). */
+export const LOGGER = Symbol("LOGGER");
+
 /** <repo root>/storage/logs, whatever the working directory is. */
-export const LOGS_DIR = resolve(import.meta.dirname, "../../../../storage/logs");
+export const LOGS_DIR = resolve(__dirname, "../../../../storage/logs");
 
 /**
  * JSON logs. Every line carries `requestId` automatically while a request is in flight,

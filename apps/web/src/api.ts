@@ -9,7 +9,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-// Same-origin /api/*; next.config.ts forwards it to the Hono server.
+// Same-origin /api/*; next.config.ts forwards it to the API server.
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
     ...init,

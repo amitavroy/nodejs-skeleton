@@ -1,7 +1,8 @@
+import { Inject, Injectable } from "@nestjs/common";
 import { count, desc, eq } from "drizzle-orm";
-import type { Item } from "./items.schemas.js";
-import type { Db } from "../../db/client.js";
-import { items } from "../../db/schema.js";
+import type { Item } from "./items.schemas";
+import { DB, type Db } from "../../db/client";
+import { items } from "../../db/schema";
 
 type Row = typeof items.$inferSelect;
 const toItem = (row: Row): Item => ({
@@ -11,8 +12,9 @@ const toItem = (row: Row): Item => ({
 });
 
 /** The only layer that touches Drizzle. Returns domain types, never rows. */
+@Injectable()
 export class ItemsRepository {
-  constructor(private readonly db: Db) {}
+  constructor(@Inject(DB) private readonly db: Db) {}
 
   async list(page: number, pageSize: number): Promise<{ rows: Item[]; total: number }> {
     const rows = await this.db

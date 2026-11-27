@@ -1,63 +1,40 @@
-import { serve } from "@hono/node-server";
-import { sql } from "drizzle-orm";
-import { Redis } from "ioredis";
-import { BullMqJobQueue } from "./adapters/bullmq-job-queue.adapter.js";
-import { createApp } from "./app.js";
-import { createAppLogger } from "./common/logger.js";
-import { loadConfig } from "./config.js";
-import { createDb } from "./db/client.js";
-import { createJobHandlers } from "./jobs/handlers.js";
-import { createQueue } from "./jobs/queue.js";
-import { startWorker } from "./jobs/worker.js";
-import { createServices } from "./services.js";
+import "reflect-metadata";
+import { NestFactory } from "@nestjs/core";
+import type { Queue } from "bullmq";
+import { AppModule } from "./app.module";
+import { createAppLogger } from "./common/logger";
+import { loadConfig, loadEnvFile } from "./config";
+import { configureApp } from "./configure-app";
+import { PinoNestLogger } from "./core/pino-nest-logger";
+import { QUEUE } from "./integrations/job-queue/queue";
 
-const config = loadConfig();
-const { logger, close: closeLogs, logsDir } = createAppLogger({
-  level: config.LOG_LEVEL,
-  logsAsFile: config.LOGS_AS_FILE,
-});
-// With file logging the terminal would otherwise stay silent; say where the logs go.
-if (logsDir) process.stdout.write(`Logging to ${logsDir}/ (one file per day)\n`);
-const { db, pool } = await createDb(config);
-const redisConnection = { host: config.REDIS_HOST, port: config.REDIS_PORT };
-const redis = new Redis({ ...redisConnection, lazyConnect: true });
+async function bootstrap() {
+  loadEnvFile();
+  const config = loadConfig();
+  const { logger, close: closeLogs, logsDir } = createAppLogger({
+    level: config.LOG_LEVEL,
+    logsAsFile: config.LOGS_AS_FILE,
+  });
+  // With file logging the terminal would otherwise stay silent; say where the logs go.
+  if (logsDir) process.stdout.write(`Logging to ${logsDir}/ (one file per day)\n`);
 
-const queue = createQueue(redisConnection);
-const jobQueue = new BullMqJobQueue(queue);
+  const app = await NestFactory.create(AppModule.forRoot({ config, logger, jobs: true }), {
+    bodyParser: false, // requestIdMiddleware parses JSON (see core/request-id.middleware.ts)
+    logger: new PinoNestLogger(logger),
+  });
+  configureApp(app, {
+    bullBoard: { queues: [app.get<Queue>(QUEUE)], user: config.BULL_BOARD_USER, password: config.BULL_BOARD_PASSWORD },
+  });
+  await app.listen(config.API_PORT);
+  logger.info({ port: config.API_PORT }, "server listening");
 
-const app = createApp({
-  db,
-  jobQueue,
-  logger,
-  bullBoard: { queues: [queue], user: config.BULL_BOARD_USER, password: config.BULL_BOARD_PASSWORD },
-  healthChecks: {
-    postgres: () => db.execute(sql`select 1`),
-    redis: async () => {
-      if (redis.status === "wait") await redis.connect();
-      return redis.ping();
-    },
-  },
-});
-
-// The worker runs in this process for now; to scale it out, move this block to its own entry file.
-const worker = startWorker({
-  connection: redisConnection,
-  logger,
-  handlers: createJobHandlers(createServices({ db, logger, jobQueue })),
-});
-
-const server = serve({ fetch: app.fetch, port: config.API_PORT }, (info) => {
-  logger.info({ port: info.port }, "server listening");
-});
-
-async function shutdown(signal: string) {
-  logger.info({ signal }, "shutting down");
-  server.close();
-  await worker.close();
-  await queue.close();
-  redis.disconnect();
-  await pool.end();
-  await closeLogs();
-  process.exit(0);
+  const shutdown = async (signal: string) => {
+    logger.info({ signal }, "shutting down");
+    await app.close(); // runs every onApplicationShutdown: worker, queue, database pool
+    await closeLogs();
+    process.exit(0);
+  };
+  for (const signal of ["SIGINT", "SIGTERM"] as const) process.once(signal, () => void shutdown(signal));
 }
-for (const signal of ["SIGINT", "SIGTERM"] as const) process.on(signal, () => void shutdown(signal));
+
+void bootstrap();

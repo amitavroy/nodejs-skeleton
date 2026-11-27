@@ -1,6 +1,6 @@
 # __APP_NAME__
 
-A starter for TypeScript web apps: a **Next.js** web app, a **Hono** REST API with background jobs, and **Postgres**. The two apps are independent and share no code. The apps run on your machine with `npm run dev`; the supporting services (database, queue, mail catcher, admin tools) run in Docker with `make up`.
+A starter for TypeScript web apps: a **Next.js** web app, a **NestJS** REST API with background jobs, and **Postgres**. The two apps are independent and share no code. The apps run on your machine with `npm run dev`; the supporting services (database, queue, mail catcher, admin tools) run in Docker with `make up`.
 
 The example feature is a list of **items**: add one in the web app and you can follow it through the API, the database, the job queue and the logs using the URLs below.
 
@@ -83,7 +83,7 @@ pgAdmin can only read `data/`. To export a backup from pgAdmin, save it inside p
 | `npm test` | Server tests (Vitest, in-memory Postgres via PGlite; no Docker needed) |
 | `npm run typecheck` | Type-check all workspaces |
 | `npm run build` | Production build of the web app (`npm run start -w @app/web` serves it) |
-| `npm run start` | Start the API only |
+| `npm run start` | Build and start the API only |
 | `make outdated` | List packages (API and web app) that have newer versions: *Wanted* is a safe update, *Latest* may be a breaking major |
 | `make update` | Safe update: newest versions your `package.json` ranges allow, then typecheck, tests and web build |
 | `make upgrade` | Upgrade everything to the latest version, including majors that may break, then typecheck, tests and build. Review with `git diff`; undo with `git checkout package.json apps/*/package.json package-lock.json && npm install` |
@@ -91,7 +91,7 @@ pgAdmin can only read `data/`. To export a backup from pgAdmin, save it inside p
 
 ## Layout
 ```
-apps/server/     Hono API: modules/<feature>/{routes,service,repository}, jobs/, ports/, adapters/, common/, db/, config.ts
+apps/server/     NestJS API: modules/<feature>/{module,controller,service,repository}, integrations/, jobs/, core/, common/, db/, config.ts
 apps/web/        Next.js UI (own API types in src/types.ts; the browser calls /api, proxied to the API)
 docker/          Config for the Docker services (Postgres init, pgAdmin server list)
 storage/logs/    Date-wise log files when LOGS_AS_FILE=true (git-ignored)

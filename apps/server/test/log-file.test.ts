@@ -2,9 +2,9 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "n
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createAppLogger } from "../src/common/logger.js";
-import { createDailyFileStream, formatLocalDate } from "../src/common/log-file.js";
-import { loadConfig } from "../src/config.js";
+import { createAppLogger } from "../src/common/logger";
+import { createDailyFileStream, formatLocalDate } from "../src/common/log-file";
+import { loadConfig } from "../src/config";
 
 let dir: string;
 beforeEach(() => {
