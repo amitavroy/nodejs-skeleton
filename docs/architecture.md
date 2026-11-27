@@ -4,7 +4,7 @@
 - `apps/server`: NestJS 11 API (Express platform) on Node, Postgres via Drizzle (node-postgres). CommonJS, compiled with SWC (`nest start --watch` in dev, `nest build` → `dist/`).
 - `apps/web`: Next.js (App Router) + Tailwind v4 + TanStack Query. It only renders UI: `next.config.ts` rewrites `/api/*` to the NestJS server, so the browser stays same-origin and there is no CORS. `scripts/next.mjs` loads the root `.env` and sets the port from `WEB_PORT`.
 - The two apps are independent: they share no code or packages and talk only over HTTP. The web app mirrors the API's types by hand in `src/types.ts`.
-- The app runs on the host. `docker-compose.yml` runs the infrastructure: Postgres (`pgvector/pgvector:pg17`, with the `vector` extension enabled), Redis (`redis:7-alpine`, for queues), Mailpit (dev mail catcher), pgAdmin (preconfigured via `docker/pgadmin/servers.json`) and Dozzle (container logs). Manage them with `make`.
+- The app runs on the host. `docker-compose.yml` runs the infrastructure: Postgres (`pgvector/pgvector:pg17`, with the `vector` extension enabled), Redis (`redis:7-alpine`, for queues), Mailpit (dev mail catcher) and Dozzle (container logs). There is no database UI container; use a desktop tool on `DB_PORT`. Manage them with `make`.
 
 ## Architectural decisions
 Add one ADR per decision that is costly to reverse. Status: proposed | accepted | superseded by ADR-NNN.

@@ -1,6 +1,6 @@
 # __APP_NAME__
 
-TypeScript monorepo (npm workspaces): `apps/server` (NestJS + Drizzle + Postgres), `apps/web` (Next.js App Router + Tailwind + TanStack Query). The two apps are independent and share no code or packages. The app runs on the host (`npm run dev`: API on `API_PORT` (3001), web on `WEB_PORT` (3000); both set in `.env`); infrastructure runs in Docker (`make up`): Postgres (pgvector/pgvector:pg17), Redis, Mailpit, pgAdmin, Dozzle. `make help` lists commands.
+TypeScript monorepo (npm workspaces): `apps/server` (NestJS + Drizzle + Postgres), `apps/web` (Next.js App Router + Tailwind + TanStack Query). The two apps are independent and share no code or packages. The app runs on the host (`npm run dev`: API on `API_PORT` (3001), web on `WEB_PORT` (3000); both set in `.env`); infrastructure runs in Docker (`make up`): Postgres (pgvector/pgvector:pg17), Redis, Mailpit, Dozzle. Use a desktop database tool on `DB_PORT` to browse the database. `make help` lists commands.
 
 ## Working agreement
 - Work is driven by plans in `docs/plans/` (see its README). Execute one plan per session; don't wander beyond its Scope.

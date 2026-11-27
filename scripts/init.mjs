@@ -5,8 +5,7 @@
 //   npm run init -- --name my-app --db-name my_app --db-user my_app --db-password 's3cret!' --yes
 //
 // It (1) replaces the app-name placeholder in every file, (2) writes .env from .env.example with
-// your database name, user and password, (3) points the pgAdmin server list at that database,
-// and (4) runs `git init` if there is no repository yet. Run it before `npm install`.
+// your database name, user and password, and (3) runs `git init` if there is no repository yet. Run it before `npm install`.
 import { execSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -204,20 +203,8 @@ if (writeEnv) {
   writeFileSync(envPath, env);
 }
 
-// pgAdmin's preregistered server must match the database Postgres is created with.
-const serversPath = join(root, "docker/pgadmin/servers.json");
-if (existsSync(serversPath)) {
-  const servers = JSON.parse(readFileSync(serversPath, "utf8"));
-  for (const server of Object.values(servers.Servers)) {
-    server.MaintenanceDB = dbName;
-    server.Username = dbUser;
-    server.Comment = "Password is DB_PASSWORD from .env";
-  }
-  writeFileSync(serversPath, JSON.stringify(servers, null, 2) + "\n");
-}
-
 if (!existsSync(join(root, ".git"))) execSync("git init -q -b main", { cwd: root });
 
 console.log(`\nDone: "${name}" is set up (${changed} files updated${writeEnv ? ", .env written" : ""}).`);
 if (writeEnv && passwordWasGenerated) console.log("The generated database password is DB_PASSWORD in .env.");
-console.log("\nNext:\n  npm install\n  make up        # Postgres, Redis, Mailpit, pgAdmin, Dozzle\n  npm run dev    # then open http://localhost:3000");
+console.log("\nNext:\n  npm install\n  make up        # Postgres, Redis, Mailpit, Dozzle\n  npm run dev    # then open http://localhost:3000");

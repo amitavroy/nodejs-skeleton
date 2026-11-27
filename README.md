@@ -10,14 +10,14 @@ cp -R node-template my-new-app && cd my-new-app
 rm -rf node_modules .git
 npm run init       # asks for the app name and database details (needs only Node)
 npm install
-make up            # start Postgres, Redis, Mailpit, pgAdmin, Dozzle in Docker
+make up            # start Postgres, Redis, Mailpit, Dozzle in Docker
 npm run dev        # API on :3001, web app on :3000
 ```
 Then open http://localhost:3000.
 
 `npm run init` asks for:
 1. **App name** (lowercase, digits, dashes; e.g. `video-magic`). Replaces the `__APP_NAME__` placeholder everywhere: package names, page title, docs, Docker project name.
-2. **Database name**, **database user** and **database password**. It writes `.env` from `.env.example` with these values, and points the pgAdmin server list at the same database. The name and user default to the app name with underscores; press Enter on the password to get a random one (it is saved as `DB_PASSWORD` in `.env`).
+2. **Database name**, **database user** and **database password**. It writes `.env` from `.env.example` with these values. The name and user default to the app name with underscores; press Enter on the password to get a random one (it is saved as `DB_PASSWORD` in `.env`).
 
 It also runs `git init` if the folder has no repository. It refuses to run twice, and asks before overwriting an existing `.env`. For scripts and CI, pass everything as flags and nothing is asked:
 ```bash
@@ -25,7 +25,7 @@ npm run init -- --name my-app --db-name my_app --db-user my_app --db-password 'p
 ```
 (`--yes` takes the defaults for anything you leave out. Passwords need at least 6 characters and must not contain spaces or the characters # $ quotes, backticks or backslashes, which break `.env` files.)
 
-Changing a database name, user or password later: edit `.env`, update `docker/pgadmin/servers.json`, and recreate the database volume, because Postgres only reads these on first start.
+Changing a database name, user or password later: edit `.env` and recreate the database volume, because Postgres only reads these on first start.
 
 ## Where to see things
 Everything below is available once `make up` and `npm run dev` are running. Ports are the defaults; change them in `.env`.
@@ -47,10 +47,9 @@ Everything below is available once `make up` and `npm run dev` are running. Port
 ### Supporting services (Docker)
 | What | URL / address | What you'll see | Login | Port setting |
 |---|---|---|---|---|
-| **pgAdmin** | http://localhost:5050 | Browse the database tables and run SQL | none; connect to the preregistered server with your database password (`DB_PASSWORD` in `.env`) | `PGADMIN_PORT` |
 | **Mailpit** | http://localhost:8025 | Inbox of every email the app sends in development (nothing is ever delivered). The template doesn't send mail yet. | none | `MAILPIT_PORT` |
 | **Dozzle** | http://localhost:9000 | Live logs of the Docker containers (Postgres, Redis, ...) | none | `DOZZLE_PORT` |
-| Postgres | `localhost:5433` | For database tools (the database name, user and password you chose) | `DB_NAME`, `DB_USER`, `DB_PASSWORD` in `.env` | `DB_PORT` |
+| Postgres | `localhost:5433` | Connect your database tool (TablePlus, DBeaver, DataGrip, ...) with the database name, user and password you chose | `DB_NAME`, `DB_USER`, `DB_PASSWORD` in `.env` | `DB_PORT` |
 | Redis | `localhost:6380` | For Redis tools; used by the job queue | none | `REDIS_PORT` |
 | SMTP | `localhost:1025` | Where the app sends mail; Mailpit catches it | none | `SMTP_PORT` |
 
@@ -60,18 +59,20 @@ Everything below is available once `make up` and `npm run dev` are running. Port
 
 Every log line has a `requestId`: send an `X-Request-ID` header (or read it from the response) and search the log for it to follow one request, including the background job it started.
 
-## Import a SQL dump with pgAdmin
-The `data/` folder on your machine is available inside pgAdmin as **`/data`** (read-only).
-1. Copy your dump into `data/` (for example `data/backup.sql`). Files in `data/` are git-ignored, and `.sql` files are ignored explicitly, so a dump can never be committed by accident.
-2. In pgAdmin (http://localhost:5050), right-click your database, then **Query Tool**, and use the folder icon to open `/data/backup.sql` and run it. For a custom-format dump (`.dump`, `.backup`), right-click the database, choose **Restore...**, and pick the file under `/data`.
-3. Make sure the right database is selected first: the preregistered server connects to the database you chose during `npm run init`.
-
-pgAdmin can only read `data/`. To export a backup from pgAdmin, save it inside pgAdmin's own storage, or change the mount in `docker-compose.yml` from `./data:/data:ro` to `./data:/data`.
+## Import a SQL dump
+Copy your dump into `data/` (for example `data/backup.sql`). Files in `data/` are git-ignored, and `.sql` files are ignored explicitly, so a dump can never be committed by accident. Then either:
+- open it in your database tool (connected to `localhost:5433`) and run it, or
+- pipe it into the database container:
+  ```bash
+  docker compose exec -T postgres sh -c 'psql -U $POSTGRES_USER -d $POSTGRES_DB' < data/backup.sql
+  # custom-format dumps (.dump, .backup):
+  docker compose exec -T postgres sh -c 'pg_restore -U $POSTGRES_USER -d $POSTGRES_DB --no-owner' < data/backup.dump
+  ```
 
 ## Try it
 1. Open http://localhost:3000 and add an item.
 2. **Swagger UI** shows the `POST /api/items` endpoint that was called.
-3. **pgAdmin** shows the new row in the `items` table.
+3. Your database tool (or `make psql`, then `select * from items;`) shows the new row in the `items` table.
 4. **Bull Board** shows an `item-added` job in `app-jobs`, completed.
 5. The terminal running `npm run dev` (or today's file in `storage/logs/` when `LOGS_AS_FILE=true`) shows `item created`, `request completed` and `item added`, all with the same `requestId`.
 
@@ -93,9 +94,9 @@ pgAdmin can only read `data/`. To export a backup from pgAdmin, save it inside p
 ```
 apps/server/     NestJS API: modules/<feature>/{module,controller,service,repository}, integrations/, jobs/, core/, common/, db/, config.ts
 apps/web/        Next.js UI (own API types in src/types.ts; the browser calls /api, proxied to the API)
-docker/          Config for the Docker services (Postgres init, pgAdmin server list)
+docker/          Config for the Docker services (Postgres init)
 storage/logs/    Date-wise log files when LOGS_AS_FILE=true (git-ignored)
-data/            Drop SQL dumps here; pgAdmin sees it as /data (contents git-ignored)
+data/            Drop SQL dumps here for importing (contents git-ignored)
 docs/            architecture.md (decisions and rules), plans/ (one plan per unit of work)
 CLAUDE.md        Working rules for AI coding sessions
 ```
