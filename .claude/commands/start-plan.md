@@ -18,4 +18,4 @@ Start work on plan $ARGUMENTS (`docs/plans/$ARGUMENTS-*.md`). Do the git setup b
    `Add plan NNNN: <title> (#<issue>)` (leave out `(#<issue>)` when there is none), and `git push`.
 7. Tell me the branch name in one line, then start task 1.
 
-While working on the plan: commit on this branch as tasks are finished (this plan's setup authorises those commits), reference the issue in commit messages (`(#123)`), and push. Never commit plan work to `main`.
+While working on the plan: do **not** commit or push the work until I explicitly say to commit. When I do, commit on this branch, reference the issue in the message (`(#123)`), and push. Never commit plan work to `main`.

@@ -123,7 +123,7 @@ Test through the real app: `createTestApp(overrides)` (`test/test-app.ts`) build
 
 ## Web guidelines
 ### Components (ADR-006)
-- **shadcn/ui is mandatory.** Add primitives with `npx shadcn@latest add <component>` (run in `apps/web`); they land in `src/components/ui/` and are ours to adjust. Never hand-roll what shadcn provides (button, input, table, dialog, form, select, ...), and don't add another component library. Use shadcn's Form + Zod pattern for forms and its Table (or Data Table) for lists.
+- **shadcn/ui is mandatory.** Add primitives with `npx shadcn@latest add <component>` (run in `apps/web`); they land in `src/components/ui/` and are ours to adjust. Never hand-roll what shadcn provides (button, input, table, dialog, form, select, ...), and don't add another component library. Forms use shadcn's `Field` components with react-hook-form + a Zod schema (`zodResolver`), and map the API's 422 `details` onto fields with `setError` (see `src/app/_components/items-form.tsx`). Lists use its `Table`; loading, error and empty states use `Skeleton`, `Alert` and `Empty`.
 - **Colocate page components** in a private `_components/` folder in the route's folder. The `_` prefix opts the folder out of routing, so it never becomes a URL segment:
   ```
   src/app/
